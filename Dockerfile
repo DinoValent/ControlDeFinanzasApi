@@ -9,7 +9,7 @@ COPY . .
 RUN dotnet publish -c Release -o /app
 
 # Etapa 2: imagen liviana solo para ejecutar (no necesita el SDK completo)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app .
 
