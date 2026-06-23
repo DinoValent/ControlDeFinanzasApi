@@ -26,7 +26,7 @@ if (string.IsNullOrEmpty(connectionString))
     throw new InvalidOperationException("ConnectionStrings__DefaultConnection no está configurada. Revisá las variables de entorno en Render.");
 }
 
-if (connectionString.StartsWith("postgres://"))
+if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
 {
     var uri = new Uri(connectionString);
     var userInfo = uri.UserInfo.Split(':');
