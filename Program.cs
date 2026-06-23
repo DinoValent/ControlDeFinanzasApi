@@ -47,7 +47,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontendDev", policy =>
         policy.WithOrigins(
                 "http://localhost:5173",                      // desarrollo local
-                "https://TU-FRONTEND.vercel.app"               // reemplazar con tu URL real de Vercel
+                "https://control-de-finanzas-eight.vercel.app/"               // reemplazar con tu URL real de Vercel
               )
               .AllowAnyHeader()
               .AllowAnyMethod());
