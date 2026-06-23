@@ -1,0 +1,6 @@
+@GestorGastos.Api_HostAddress = http://localhost:5174
+
+GET {{GestorGastos.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
