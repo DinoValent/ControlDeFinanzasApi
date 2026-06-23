@@ -10,23 +10,48 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Conversión de connection string: Render la da en formato URL (postgres://...),
+// Npgsql necesita el formato clásico (Host=...;Username=...)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (connectionString != null && connectionString.StartsWith("postgres://"))
+{
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':');
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};" +
+        $"Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddHttpClient<GeminiCategorizadorService>();
 builder.Services.AddScoped<ICategorizadorIA, GeminiCategorizadorService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendDev", policy =>
-        policy.WithOrigins("http://localhost:5173") // puerto típico de Vite
+        policy.WithOrigins(
+                "http://localhost:5173",                      // desarrollo local
+                "https://TU-FRONTEND.vercel.app"               // reemplazar con tu URL real de Vercel
+              )
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
 
 var app = builder.Build();
+
+// Aplica migraciones pendientes automáticamente al arrancar (necesario en Render,
+// donde la base arranca vacía y no podés correr `dotnet ef` a mano)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 app.UseMiddleware<GestorGastos.Api.Middleware.ManejadorExcepcionesMiddleware>();
 
