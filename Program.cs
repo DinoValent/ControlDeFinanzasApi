@@ -18,7 +18,15 @@ builder.Services.AddSwaggerGen();
 // Npgsql necesita el formato clásico (Host=...;Username=...)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-if (connectionString != null && connectionString.StartsWith("postgres://"))
+Console.WriteLine($"[DEBUG] Connection string recibida (longitud): {connectionString?.Length ?? 0}");
+Console.WriteLine($"[DEBUG] Empieza con postgres://: {connectionString?.StartsWith("postgres://") ?? false}");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("ConnectionStrings__DefaultConnection no está configurada. Revisá las variables de entorno en Render.");
+}
+
+if (connectionString.StartsWith("postgres://"))
 {
     var uri = new Uri(connectionString);
     var userInfo = uri.UserInfo.Split(':');
