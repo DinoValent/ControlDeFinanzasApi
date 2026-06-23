@@ -8,7 +8,7 @@ public record MovimientoExtraidoPdf(DateTime Fecha, string Descripcion, decimal 
 
 public class ExtractorPdfBancario
 {
-    // Ancla en: DD/MES + número de operación (8+ dígitos) + descripción + $monto1 + $monto2(saldo)
+    // Ancla en: DD/MES + nÃºmero de operaciÃ³n (8+ dÃ­gitos) + descripciÃ³n + $monto1 + $monto2(saldo)
     // El lookahead al final asegura que paramos justo antes de la siguiente fila o del final del texto
     private static readonly Regex RegexMovimiento = new(
         @"(\d{2})/([A-Z]{3})(\d{8,})(.*?)\$\s*([\d.,]+)\$\s*([\d.,]+)(?=\d{2}/[A-Z]{3}\d{8,}|$)",
@@ -30,13 +30,13 @@ public class ExtractorPdfBancario
         ["DIC"] = 12
     };
 
-    public List<MovimientoExtraidoPdf> Extraer(Stream pdfStream, int año)
+    public List<MovimientoExtraidoPdf> Extraer(Stream pdfStream, int aÃ±o)
     {
         var movimientos = new List<MovimientoExtraidoPdf>();
         using var documento = PdfDocument.Open(pdfStream);
 
-        // Unimos todas las páginas SIN separador: si un renglón se corta justo en el salto de
-        // página, necesitamos que quede contiguo para que el regex lo pueda matchear igual.
+        // Unimos todas las pÃ¡ginas SIN separador: si un renglÃ³n se corta justo en el salto de
+        // pÃ¡gina, necesitamos que quede contiguo para que el regex lo pueda matchear igual.
         var textoCompleto = string.Join("", documento.GetPages().Select(p => p.Text));
 
         foreach (Match match in RegexMovimiento.Matches(textoCompleto))
@@ -48,7 +48,7 @@ public class ExtractorPdfBancario
 
             if (!Meses.TryGetValue(mesTexto, out var mes)) continue;
 
-            var fecha = new DateTime(año, mes, int.Parse(dia), 0, 0, 0, DateTimeKind.Utc);
+            var fecha = new DateTime(aÃ±o, mes, int.Parse(dia), 0, 0, 0, DateTimeKind.Utc);
             var monto = decimal.Parse(montoTexto.Replace(".", "").Replace(",", "."),
                 CultureInfo.InvariantCulture);
 

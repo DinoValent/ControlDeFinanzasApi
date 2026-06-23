@@ -40,7 +40,7 @@ public class MovimientosController : ControllerBase
         });
     }
 
-    // Paso 2: el usuario confirma (o corrigió la categoría) y se guarda definitivo
+    // Paso 2: el usuario confirma (o corrigiÃ³ la categorÃ­a) y se guarda definitivo
     [HttpPost("confirmar")]
     public async Task<IActionResult> Confirmar([FromBody] ConfirmarMovimientoRequest req)
     {
@@ -90,7 +90,7 @@ public class MovimientosController : ControllerBase
     public async Task<IActionResult> ImportarCsv(IFormFile archivo, [FromForm] int cuentaId)
     {
         if (archivo.Length == 0)
-            return BadRequest("El archivo está vacío.");
+            return BadRequest("El archivo estÃ¡ vacÃ­o.");
 
         var movimientosCrudos = new List<MovimientoCrudo>();
 
@@ -103,7 +103,7 @@ public class MovimientosController : ControllerBase
 
         while (await csv.ReadAsync())
         {
-            // AJUSTAR ESTOS NOMBRES según las columnas reales de tu export
+            // AJUSTAR ESTOS NOMBRES segÃºn las columnas reales de tu export
             // (Mercado Pago, Lemon Cash, etc. tienen headers distintos)
             var descripcion = csv.GetField("Descripcion") ?? csv.GetField("Detalle") ?? "";
             var montoTexto = csv.GetField("Monto") ?? csv.GetField("Importe") ?? "0";
@@ -121,16 +121,16 @@ public class MovimientosController : ControllerBase
         }
 
         if (movimientosCrudos.Count == 0)
-            return BadRequest("No se encontraron filas válidas en el CSV.");
+            return BadRequest("No se encontraron filas vÃ¡lidas en el CSV.");
 
         var categorias = await _db.Categorias.ToListAsync();
         var preview = new List<MovimientoCsvPreview>();
 
         // Procesamos en lotes de 20 para no mandar todo de una ni hacer 1 request por fila
-        const int tamañoLote = 10;
-        for (int i = 0; i < movimientosCrudos.Count; i += tamañoLote)
+        const int tamaÃ±oLote = 10;
+        for (int i = 0; i < movimientosCrudos.Count; i += tamaÃ±oLote)
         {
-            var lote = movimientosCrudos.Skip(i).Take(tamañoLote).ToList();
+            var lote = movimientosCrudos.Skip(i).Take(tamaÃ±oLote).ToList();
             var resultados = await _categorizador.CategorizarLoteAsync(lote, categorias);
 
             for (int j = 0; j < lote.Count; j++)
@@ -175,16 +175,16 @@ public class MovimientosController : ControllerBase
     }
     [HttpPost("importar-pdf")]
     public async Task<IActionResult> ImportarPdf(IFormFile archivo, [FromForm] int cuentaId,
-    [FromForm] int año, [FromForm] string nombreTitular)
+    [FromForm] int aÃ±o, [FromForm] string nombreTitular)
     {
-        if (archivo.Length == 0) return BadRequest("El archivo está vacío.");
+        if (archivo.Length == 0) return BadRequest("El archivo estÃ¡ vacÃ­o.");
 
         var extractor = new ExtractorPdfBancario();
         List<MovimientoExtraidoPdf> extraidos;
 
         using (var stream = archivo.OpenReadStream())
         {
-            extraidos = extractor.Extraer(stream, año);
+            extraidos = extractor.Extraer(stream, aÃ±o);
         }
 
         // Solo nos interesan los EGRESOS para un gestor de gastos
@@ -196,10 +196,10 @@ public class MovimientosController : ControllerBase
         var categorias = await _db.Categorias.ToListAsync();
         var preview = new List<MovimientoCsvPreview>();
 
-        const int tamañoLote = 20;
-        for (int i = 0; i < egresos.Count; i += tamañoLote)
+        const int tamaÃ±oLote = 20;
+        for (int i = 0; i < egresos.Count; i += tamaÃ±oLote)
         {
-            var lote = egresos.Skip(i).Take(tamañoLote)
+            var lote = egresos.Skip(i).Take(tamaÃ±oLote)
                 .Select(m => new MovimientoCrudo(
                     $"{m.Descripcion} [Titular de la cuenta: {nombreTitular}]", m.Monto, m.Fecha))
                 .ToList();
@@ -238,7 +238,7 @@ public class MovimientosController : ControllerBase
     public async Task<IActionResult> ResumenPeriodo([FromQuery] DateTime desde, [FromQuery] DateTime hasta)
     {
         desde = DateTime.SpecifyKind(desde, DateTimeKind.Utc);
-        hasta = DateTime.SpecifyKind(hasta.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc); // incluye todo el día "hasta"
+        hasta = DateTime.SpecifyKind(hasta.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc); // incluye todo el dÃ­a "hasta"
                                                                                             // Excluimos transferencias propias (CategoriaId null con ese origen) de los totales de gasto real
         var query = _db.Movimientos
       .Include(m => m.Categoria)
@@ -256,7 +256,7 @@ public class MovimientosController : ControllerBase
             .Select(g => g.Key)
             .FirstOrDefault();
 
-        // Calculamos el período anterior de igual longitud, para la comparación
+        // Calculamos el perÃ­odo anterior de igual longitud, para la comparaciÃ³n
         var duracion = hasta - desde;
         var desdeAnterior = DateTime.SpecifyKind(desde - duracion - TimeSpan.FromDays(1), DateTimeKind.Utc);
         var hastaAnterior = DateTime.SpecifyKind(desde - TimeSpan.FromDays(1), DateTimeKind.Utc);
@@ -302,7 +302,7 @@ public class MovimientosController : ControllerBase
             .ToList();
 
         if (lineas.Count == 0)
-            return BadRequest("No se encontraron líneas válidas para procesar.");
+            return BadRequest("No se encontraron lÃ­neas vÃ¡lidas para procesar.");
 
         var movimientosCrudos = lineas
             .Select(l => new MovimientoCrudo(l, null, DateTime.UtcNow))
